@@ -9,7 +9,7 @@ import sqlite3
 import os
 from sqlite3 import Error
 
-db_loc = './databases/wiki.db'
+db_loc = './data/wiki.db'
 
 class sql_base():
     def __init__(self):

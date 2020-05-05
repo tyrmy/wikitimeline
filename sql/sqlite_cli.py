@@ -47,7 +47,7 @@ class sqlite_cli(base):
         for table in self.tables:
             try:
                 print(table.upper())
-                self.cur.execute('SELECT * FROM {} ORDER BY id DESC LIMIT 5'.format(table))
+                self.cur.execute('SELECT * FROM {} ORDER BY id DESC LIMIT 10'.format(table))
                 t = from_db_cursor(self.cur)
                 print(t)
             except Error as e:
@@ -89,7 +89,7 @@ class sqlite_cli(base):
 
 if __name__ == '__main__':
     sq = sqlite_cli()
-    sq.connect('./databases/wiki')
+    sq.connect('./data/wiki.db')
     try:
         sq.run()
     except KeyboardInterrupt:
