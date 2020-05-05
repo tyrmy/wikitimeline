@@ -1,8 +1,9 @@
 """
-Created on 1.7.2019
+Created on 1 Jul 2019
 
 @author Lassi Lehtinen
 """
+
 from datetime import date as d
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
@@ -11,16 +12,22 @@ import re
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
-dates = [[d(1995,3,15),d.today()],
+relative_dates = [[d(1995,3,15),d.today()],
         [d(1993,4,23),d.today()],
         [d(1968,3,2),d.today()],
         [d(1969,2,13),d.today()]]
 
-names = ['Lassi Lehtinen', 'Matilda Lintunen', 'Hannu Lehtinen', 'Tarja Salminen']
+relative_names = ['Lassi Lehtinen', 'Matilda Lintunen', 'Hannu Lehtinen', 'Tarja Salminen']
 
 years = mdates.YearLocator(5)
 years_minor = mdates.YearLocator(1)
-persons = ['Urho Kekkonen', 'Paavo Lipponen', 'Mannerheim', 'Prinsessa Diana', 'John Kennedy', 'Tarja Halonen', 'Mick Jagger', 'Ozzy Osbourne', 'Frank Zappa', 'Marco Hietala', 'Tuomas Holopainen', 'Timo Soini', 'Alan Turing', 'Ben Stiller', 'Conan O\'Brian', 'Arnold Schwarzenegger']
+
+randoms = ['Urho Kekkonen', 'Paavo Lipponen', 'Mannerheim', 'Prinsessa Diana', 'John Kennedy', 'Tarja Halonen', 'Mick Jagger', 'Ozzy Osbourne', 'Frank Zappa', 'Marco Hietala', 'Tuomas Holopainen', 'Timo Soini', 'Alan Turing', 'Ben Stiller', 'Conan O\'Brian', 'Arnold Schwarzenegger']
+
+dates = []
+names = []
+persons = ['Adolf Hitler', 'Josef Stalin', 'Benito Mussolini', 'Albert Einstein', 'Werner Heisenberg', 'Josef Mengele', 'Osama bin Laden', 'Mahatma Gandhi', 'Richard Wagner']
+
 pages = set()
 
 def printInfobox(url):
