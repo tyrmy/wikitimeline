@@ -1,8 +1,11 @@
+# -*- coding: utf-8 -*-
+
 """
 Created on 1 Jul 2019
 
 @author Lassi Lehtinen
 """
+
 
 import sqlite3
 from sqlite3 import Error
@@ -18,17 +21,16 @@ import matplotlib.dates as mdates
 
 from time import sleep
 from datetime import date as d
+import datetime
 
 from random import sample
 
 db_loc = './data/wiki.db'
-
 years = mdates.YearLocator(5)
 years_minor = mdates.YearLocator(1)
 
-randoms = ['Urho Kekkonen', 'Paavo Lipponen', 'Mannerheim', 'Prinsessa Diana', 'John Kennedy', 'Tarja Halonen', 'Mick Jagger', 'Ozzy Osbourne', 'Frank Zappa', 'Marco Hietala', 'Tuomas Holopainen', 'Timo Soini', 'Alan Turing', 'Ben Stiller', 'Conan O\'Brian', 'Arnold Schwarzenegger', 'Adolf Hitler', 'Josef Stalin', 'Benito Mussolini', 'Albert Einstein', 'Werner Heisenberg', 'Josef Mengele', 'Osama bin Laden', 'Mahatma Gandhi', 'Richard Wagner', 'Kurt Cobain', 'Hillary Clinton', 'Amy Winehouse', 'Donald Trump', 'Justin Bieber', 'George W. Bush', 'Pablo Escobar']
-
 def store(name, born=None, died=None, source=None):
+    """ Store a value to project specified database with columns mentioned below """
     names = name.split()
     store = """
         insert into people (fname, lname, bday, dday, source)
@@ -44,6 +46,7 @@ def store(name, born=None, died=None, source=None):
         print("store: ", e)
 
 def store_list(source):
+    """ Start fetching dates from wikipedia with a list on names as input. Takes care of storing. """
     for person in source:
         sleep(5)
         dt = []
@@ -73,6 +76,12 @@ def store_list(source):
 def days_between(d1, d2):
     """ Count days between two date objects """
     return abs((d2 - d1).days)
+
+def dict_factory(cursor, row):
+    d = {}
+    for idx, col in enumerate(cursor.description):
+        d[col[0]] = row[idx]
+    return d
 
 def get_url(url):
     """ Get page content """
@@ -180,41 +189,61 @@ def datestr2numlist(date):
         intlist.append(int(i))
     return intlist
 
+def plot_persons(amount):
+    """ Plots timelines from database TO BE MOVED"""
+    try:
+        con = sqlite3.connect(db_loc)
+        con.row_factory = dict_factory
+        cur = con.cursor()
+        cur.execute("SELECT fname, lname, bday, dday FROM people")
+    except Error as e:
+        print("plot_persons: ", e)
 
-def plot_persons(input_list):
-    dates = []
-    names = []
-    for person in input_list:
-        url = fi_wiki_url(person)
-        try:
-            dates.append(dates(get_url(url)))
-            names.append(person)
-        except:
-            dates.append(dates_backup(get_url(url)))
-            names.append(person)
+    fig, ax = plt.subplots(1)
 
-    fig,ax = plt.subplots(1)
+    index = 1
+    source = cur.fetchall()
+    people = sample(source, amount)
 
-    index = [1,1]
-    name_index = 0
-    for life in dates:
-         plt.plot(life, index, linewidth=4, label=names[name_index])
-         index = [i+1 for i in index]
-         name_index += 1
+    for person in people:
+        person['bday'] = datetime.datetime.strptime(person['bday'], '%Y-%m-%d').date()
+        if ( person['dday'] == None ):
+            person['dday'] = d.today()
+        elif ( person['dday'] == 'None' ):
+            person['dday'] = d.today()
+        elif (isinstance(person['dday'], str)):
+            person['dday'] = datetime.datetime.strptime(person['dday'], '%Y-%m-%d').date()
 
-    plt.ylim(bottom=0, top=len(dates)+1)
+    for life in people:
+        name = '{} {}'.format(life['fname'], life['lname'])
+        plt.plot([life['bday'], life['dday']], [index, index], linewidth=4, label=name)
+        index += 1
+
+    plt.ylim(bottom=0, top=amount+1)
     ax.legend()
     ax.xaxis.set_major_locator(years)
     ax.xaxis.set_minor_locator(years_minor)
     fig.autofmt_xdate()
     plt.gca().axes.get_yaxis().set_visible(False)
-    plt.tight_layout(.5)
+    plt.tight_layout(pad=0.5, h_pad=0.5, w_pad=0.5)
     plt.grid(True)
     plt.show()
+    con.close()
+
+def user_input():
+    person = ''
+    print("Input people to database:")
+    while person is not 'quit':
+        person = input('Name: ')
+        if person == 'quit':   
+             break
+        store_list([person])
+    print("Exiting...")
 
 if __name__ == '__main__':
     #print_persons(sample(randoms, 5))
+    plot_persons(20)
     #store_list(sample(randoms, 20))
-    finnish = ['Irwin Goodman','Vexi Salmi','Virve Rosti']
-    store_list(finnish)
-    exit()
+    #finnish = ['Aku Hirviniemi', 'Jaakko Saariluoma', 'Jonne Aaron', 'Mauno Koivisto', 'Urho Kekkonen', 'Risto Ryti', 'Tuomas Holopainen', 'Jenni Vartiainen']
+    #store_list(finnish)
+    #user_input()
