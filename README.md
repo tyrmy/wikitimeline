@@ -12,6 +12,9 @@ Plotting is done bases on sql quaries.
 
 * Manual input
 
+---
+
 ## Images
 
 ![timeline1](./images/timeline_01.png)
+![timeline1](./images/timeline_02.png)

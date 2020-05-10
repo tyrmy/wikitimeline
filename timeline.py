@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 """
 Created on 1 Jul 2019
 
@@ -25,7 +24,7 @@ import datetime
 from random import sample
 
 db_loc = './data/wiki.db'
-years = mdates.YearLocator(5)
+years = mdates.YearLocator(10)
 years_minor = mdates.YearLocator(1)
 
 def store(name, born=None, died=None, source=None):
@@ -72,7 +71,7 @@ def store_list(source):
         print("--------------")
 
 def days_between(d1, d2):
-    """ Count days between two date objects """
+    """ Count days between two date objects. Returns int """
     return abs((d2 - d1).days)
 
 def dict_factory(cursor, row):
@@ -115,11 +114,17 @@ def dates(html):
     bsObj = BeautifulSoup(html, 'lxml')
     infobox = bsObj.find("table", {"class": "infobox"})
     if infobox is not None:
-        for date in re.findall('[0-9]{1,2}\.\ [A-Za-z].*\ [0-9]{4}', infobox.get_text().split('Syntynyt')[1]):
+        print('dates: infobox found')
+        # Splits result at a keyword
+        spot = infobox.get_text().split('Syntynyt')[1]
+        for date in re.findall('[0-9]{1,2}\.\ [äöÄÖA-Za-z]{3,12}\ [0-9]{4}', spot):
+            print('dates: "{}"'.format(date))
             newform = convertDate(date)
-            fix = datestr2numlist(newform)
-            new = d(fix[2],fix[1],fix[0])	
+            print('dates: newform = {}'.format(newform))
+            new = datetime.datetime.strptime(newform, '%d.%m.%Y').date()
             dates.append(new)
+            if len(dates) == 2:
+                break
         return dates
     else:
         print('dates: infobox not found')
@@ -130,14 +135,17 @@ def dates_backup(html):
     bsObj = BeautifulSoup(html, 'lxml')
     paragraph = bsObj.find("div", {"id": "mw-content-text"})
     if paragraph is not None:
-        for date in re.findall('[0-9]{1,2}\.\ [A-Za-z].*?\ [0-9]{4}', paragraph.get_text()):
+        for date in re.findall('[0-9]{1,2}\.\ [ÄÖäöA-Za-z].*?\ [0-9]{4}', paragraph.get_text()):
+            print('dates_backup: '.format(date))
             try:
                 newform = convertDate(date)
-                fix = datestr2numlist(newform)
-                new = d(fix[2],fix[1],fix[0])	
+                print('dates_backup: newform = {}'.format(newform))
+                new = datetime.datetime.strptime(newform, '%d.%m.%Y').date()
                 dates.append(new)
+                if len(dates) == 2:
+                    break
             except:
-                print("Kelvoton pvm...")
+                print("dates_backup: datetime format error")
         return dates
     if dates is not None:
         return dates
@@ -145,9 +153,9 @@ def dates_backup(html):
         print("dates_backup: no luck")
 
 def print_by_age():
-    get = """
-    SELECT * FROM people
-    """
+    """ Print people on command line sorted by total age """
+
+    get = "SELECT * FROM people"
     try:
         con = sqlite3.connect(db_loc)
         con.row_factory = dict_factory
@@ -212,14 +220,6 @@ def convertDate(date):
     newdate = re.sub('\ ', '', newdate)
     return newdate
 
-def datestr2numlist(date):
-    """ Takes a date in string format and separated them to int list """
-    newdate = date.split('.')
-    intlist = []
-    for i in newdate:
-        intlist.append(int(i))
-    return intlist
-
 def plot_persons(amount):
     """ 
     Plots lifetime timelines from database to a matlib plot.
@@ -229,7 +229,8 @@ def plot_persons(amount):
         con = sqlite3.connect(db_loc)
         con.row_factory = dict_factory
         cur = con.cursor()
-        cur.execute("SELECT fname, lname, bday, dday FROM people WHERE bday LIKE \'19%\'")
+        #cur.execute("SELECT fname, lname, bday, dday FROM people WHERE bday LIKE \'19%\'")
+        cur.execute("SELECT fname, lname, bday, dday FROM people")
     except Error as e:
         print("plot_persons: ", e)
 
@@ -255,9 +256,14 @@ def plot_persons(amount):
     ax.xaxis.set_minor_locator(years_minor)
     fig.autofmt_xdate()
     plt.gca().axes.get_yaxis().set_visible(False)
-    #plt.tight_layout(pad=0.5, h_pad=0.5, w_pad=0.5)
+    #plt.tight_layout(pad=0.05, h_pad=0.2, w_pad=0.2)
     plt.grid(True)
-    plt.savefig('./images/timeline_01.png', dpi=100)
+
+    legend_col = int(len(people)/30)+1
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(handles[::-1], labels[::-1], title='Names', loc='upper left', fontsize='x-small', shadow=True, ncol=legend_col)
+    plt.savefig('./images/timeline_02.png', dpi=100)
+    plt.show()
 
 def add_dates(input_dict):
     """ Change dict string dates to datetime objects """
@@ -277,9 +283,9 @@ def user_input():
     print("Input people to database:")
     while person is not 'quit':
         person = input('Name: ')
-        if person == 'quit':   
+        if person == 'quit' or person == 'q':   
              break
-        elif person == 'print':
+        elif person == 'print' or person == 'p':
             count = input('How many:')
             plot_persons(int(count))
             continue
