@@ -108,13 +108,24 @@ def print_persons(input_list):
         sleep(5)
         print_infobox(person)
 
+def get_infobox(html):
+    bsObj = BeautifulSoup(html, 'lxml')
+    infobox = bsObj.find("table", {"class": "infobox"})
+    if infobox is None:
+        raise ValueError('get_infobox: Infobox not found!')
+    else:
+        print('get_infobox: infobox found!')
+        return infobox
+
 def dates(html):
     """ Primary way of finding dates. Takes the html """
     dates = []
-    bsObj = BeautifulSoup(html, 'lxml')
-    infobox = bsObj.find("table", {"class": "infobox"})
-    if infobox is not None:
-        print('dates: infobox found')
+    try:
+        infobox = get_infobox(html)
+    except ValueError as e:
+        print('dates: ', e)
+        return
+    try:
         # Splits result at a keyword
         spot = infobox.get_text().split('Syntynyt')[1]
         for date in re.findall('[0-9]{1,2}\.\ [äöÄÖA-Za-z]{3,12}\ [0-9]{4}', spot):
@@ -126,8 +137,10 @@ def dates(html):
             if len(dates) == 2:
                 break
         return dates
-    else:
-        print('dates: infobox not found')
+    except IndexError as e:
+        print('dates: something went wrong when parsing dates from infobox...')
+        print('dates: ', e)
+        return
 
 def dates_backup(html):
     """ Secondary way of finding dates. Takes raw html """

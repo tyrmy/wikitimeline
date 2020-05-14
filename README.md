@@ -8,9 +8,13 @@ timeline.py contains all main functions. _requests_ library is used to fetch htm
 
 Plotting is done bases on sql quaries.
 
+Lines representing a lifespan are generated with a persons name and two _datetime_ objects. 
+
 ## TBI
 
 * Manual input
+* Wiki scraper for automated database expansion
+* Other sources
 
 ---
 
