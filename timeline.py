@@ -26,6 +26,7 @@ from random import sample
 db_loc = './data/wiki.db'
 years = mdates.YearLocator(10)
 years_minor = mdates.YearLocator(1)
+years_fmt = mdates.DateFormatter('%Y')
 
 def store(name, born=None, died=None, source=None):
     """ Store a value to project specified database with columns mentioned below """
@@ -266,16 +267,17 @@ def plot_persons(amount):
     plt.xlim(right=d.today())
     ax.legend()
     ax.xaxis.set_major_locator(years)
+    ax.xaxis.set_major_formatter(years_fmt)
     ax.xaxis.set_minor_locator(years_minor)
-    fig.autofmt_xdate()
     plt.gca().axes.get_yaxis().set_visible(False)
     #plt.tight_layout(pad=0.05, h_pad=0.2, w_pad=0.2)
     plt.grid(True)
+    fig.autofmt_xdate()
 
     legend_col = int(len(people)/30)+1
     handles, labels = ax.get_legend_handles_labels()
     ax.legend(handles[::-1], labels[::-1], title='Names', loc='upper left', fontsize='x-small', shadow=True, ncol=legend_col)
-    plt.savefig('./images/timeline_02.png', dpi=100)
+    #plt.savefig('./images/timeline_02.png', dpi=100)
     plt.show()
 
 def add_dates(input_dict):
@@ -302,7 +304,7 @@ def user_input():
             count = input('How many:')
             plot_persons(int(count))
             continue
-        elif person == 'age':
+        elif person == 'all' or person == 'a':
             print_by_age()
             continue
         store_list([person])
