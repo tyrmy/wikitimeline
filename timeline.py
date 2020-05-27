@@ -301,12 +301,13 @@ def user_input():
         if person == 'quit' or person == 'q':   
              break
         elif person == 'print' or person == 'p':
-            count = input('How many:')
+            count = input('How many: ')
             plot_persons(int(count))
-            continue
         elif person == 'all' or person == 'a':
             print_by_age()
-            continue
+        else:
+            print('Unrecognized command...')
+            sleep(2)
         store_list([person])
     print("Exiting...")
 
